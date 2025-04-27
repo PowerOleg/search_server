@@ -119,7 +119,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_WIN32_WINNT=0x0A00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\cpp\libpqxx-7.9.2\libpqxx-7.9.2\out\install\x64-Release\include;C:\cpp\eleventh\vcpkg\installed\x64-windows\include;C:\cpp\installopenssl\dllx64Release\include;C:\cpp\boost_1_87Bin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -128,7 +128,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libssl.lib;libcrypro.lib;libpq.lib;pqxx.lib;ws2_32.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libssl.lib;libcrypto.lib;libpq.lib;pqxx.lib;ws2_32.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\cpp\eleventh\vcpkg\installed\x64-windows\lib;C:\cpp\installopenssl\dllx64Release\lib;C:\Program Files\PostgreSQL\16\lib;C:\cpp\libpqxx-7.9.2\libpqxx-7.9.2\out\install\x64-Release\lib;C:\cpp\boost_1_87Bin\lib64-msvc-14.3;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
