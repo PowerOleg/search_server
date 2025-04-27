@@ -17,7 +17,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 
 
-/*namespace my_program_state
+namespace my_program_state
 {
     std::size_t
     request_count()
@@ -202,13 +202,13 @@ http_server(tcp::acceptor& acceptor, tcp::socket& socket)
               std::make_shared<http_connection>(std::move(socket))->start();
           http_server(acceptor, socket);
       });
-}*/
+}
 
 int main(int argc, char** argv)
 {
-    /*try
+    try
     {
-        // Check command line arguments.
+        /*// Check command line arguments.
         if (argc != 3)
         {
             std::cerr << "Usage: " << argv[0] << " <address> <port>\n";
@@ -217,10 +217,10 @@ int main(int argc, char** argv)
             std::cerr << "  For IPv6, try:\n";
             std::cerr << "    receiver 0::0 80\n";
             return EXIT_FAILURE;
-        }
+        }*/
 
-        auto const address = net::ip::make_address(argv[1]);
-        unsigned short port = static_cast<unsigned short>(std::atoi(argv[2]));
+        const boost::asio::ip::address address = net::ip::make_address("127.0.0.1");
+        unsigned short port = static_cast<unsigned short>(80);//(std::atoi(argv[2]));
 
         net::io_context ioc{ 1 };
 
@@ -234,6 +234,6 @@ int main(int argc, char** argv)
     {
         std::cerr << "Error: " << e.what() << std::endl;
         return EXIT_FAILURE;
-    }*/
+    }
 	return 0;
 }
