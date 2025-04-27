@@ -36,10 +36,8 @@ namespace my_program_state
 class http_connection : public std::enable_shared_from_this<http_connection>
 {
 public:
-    http_connection(tcp::socket socket)
-        : socket_(std::move(socket))
-    {
-    }
+    http_connection(tcp::socket socket) : socket_(std::move(socket))
+    {}
 
     // Initiate the asynchronous operations associated with the connection.
     void
@@ -70,14 +68,13 @@ private:
     void
     read_request()
     {
-        auto self = shared_from_this();
+        auto self = shared_from_this();//???
 
         http::async_read(
             socket_,
             buffer_,
             request_,
-            [self](beast::error_code ec,
-                std::size_t bytes_transferred)
+            [self](beast::error_code ec, std::size_t bytes_transferred)
             {
                 boost::ignore_unused(bytes_transferred);
                 if(!ec)
@@ -86,8 +83,7 @@ private:
     }
 
     // Determine what needs to be done with the request message.
-    void
-    process_request()
+    void process_request()
     {
         response_.version(request_.version());
         response_.keep_alive(false);
@@ -116,8 +112,7 @@ private:
     }
 
     // Construct a response message based on the program state.
-    void
-    create_response()
+    void create_response()
     {
         if(request_.target() == "/count")
         {
@@ -192,19 +187,19 @@ private:
 };
 
 // "Loop" forever accepting new connections.
-void
-http_server(tcp::acceptor& acceptor, tcp::socket& socket)
+void http_server(tcp::acceptor& acceptor, tcp::socket& socket)//где здесь loop?
 {
-  acceptor.async_accept(socket,
-      [&](beast::error_code ec)
-      {
-          if(!ec)
-              std::make_shared<http_connection>(std::move(socket))->start();
-          http_server(acceptor, socket);
-      });
+    acceptor.async_accept(socket, [&](beast::error_code ec)
+    {
+        if (!ec)
+        {
+            std::make_shared<http_connection>(std::move(socket))->start();
+            http_server(acceptor, socket);
+        }
+  });
 }
 
-int main(int argc, char** argv)
+int main(int argc, char** argv)//http://127.0.0.1/count
 {
     try
     {
