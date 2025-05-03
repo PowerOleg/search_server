@@ -19,6 +19,8 @@
 #include <thread>
 #include <vector>
 
+#pragma execution_character_set("utf-8")
+
 namespace beast = boost::beast;                 // from <boost/beast.hpp>
 namespace http = beast::http;                   // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket;         // from <boost/beast/websocket.hpp>
@@ -93,8 +95,7 @@ template <class Body, class Allocator>
 http::message_generator handle_request(beast::string_view doc_root, http::request<Body, http::basic_fields<Allocator>>&& req)
 {
     // Returns a bad request response
-    auto const bad_request =
-        [&req](beast::string_view why)
+    auto const bad_request = [&req](beast::string_view why)
         {
             http::response<http::string_body> res{ http::status::bad_request, req.version() };
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -106,8 +107,7 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
         };
 
     // Returns a not found response
-    auto const not_found =
-        [&req](beast::string_view target)
+    auto const not_found = [&req](beast::string_view target)
         {
             http::response<http::string_body> res{ http::status::not_found, req.version() };
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -119,8 +119,7 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
         };
 
     // Returns a server error response
-    auto const server_error =
-        [&req](beast::string_view what)
+    auto const server_error = [&req](beast::string_view what)
         {
             http::response<http::string_body> res{ http::status::internal_server_error, req.version() };
             res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -131,16 +130,28 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
             return res;
         };
 
+
+    std::cout << req.target() << std::endl;
+    if (req.method() == http::verb::post && req.target() == "/search")
+    {
+        //ProcessPostMethod();
+
+
+
+
+        return bad_request("Post HTTP-method will be processed soon");
+    }
+
+
     // Make sure we can handle the method
-    if (req.method() != http::verb::get &&
-        req.method() != http::verb::head)
+    if (req.method() != http::verb::get && req.method() != http::verb::head)
         return bad_request("Unknown HTTP-method");
 
     // Request path must be absolute and not contain "..".
-    if (req.target().empty() ||
-        req.target()[0] != '/' ||
-        req.target().find("..") != beast::string_view::npos)
+    if (req.target().empty() || req.target()[0] != '/' || req.target().find("..") != beast::string_view::npos)
         return bad_request("Illegal request-target");
+
+
 
     // Build the path to the requested file
     std::string path = path_cat(doc_root, req.target());
@@ -309,14 +320,10 @@ class http_session : public std::enable_shared_from_this<http_session>
 
 public:
     // Take ownership of the socket
-    http_session(
-        tcp::socket&& socket,
-        std::shared_ptr<std::string const> const& doc_root)
-        : stream_(std::move(socket))
-        , doc_root_(doc_root)
+    http_session(tcp::socket&& socket, std::shared_ptr<std::string const> const& doc_root)
+        : stream_(std::move(socket)), doc_root_(doc_root)
     {
-        static_assert(queue_limit > 0,
-            "queue limit must be positive");
+        static_assert(queue_limit > 0, "queue limit must be positive");
     }
 
     // Start the session
@@ -326,11 +333,7 @@ public:
         // on the I/O objects in this session. Although not strictly necessary
         // for single-threaded contexts, this example code is written to be
         // thread-safe by default.
-        net::dispatch(
-            stream_.get_executor(),
-            beast::bind_front_handler(
-                &http_session::do_read,
-                this->shared_from_this()));
+        net::dispatch(stream_.get_executor(), beast::bind_front_handler(&http_session::do_read, this->shared_from_this()));
     }
 
 private:
@@ -347,13 +350,7 @@ private:
         stream_.expires_after(std::chrono::seconds(30));
 
         // Read a request using the parser-oriented interface
-        http::async_read(
-            stream_,
-            buffer_,
-            *parser_,
-            beast::bind_front_handler(
-                &http_session::on_read,
-                shared_from_this()));
+        http::async_read(stream_, buffer_, *parser_, beast::bind_front_handler(&http_session::on_read, shared_from_this()));
     }
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred)
@@ -372,8 +369,7 @@ private:
         {
             // Create a websocket session, transferring ownership
             // of both the socket and the HTTP request.
-            std::make_shared<websocket_session>(
-                stream_.release_socket())->do_accept(parser_->release());
+            std::make_shared<websocket_session>(stream_.release_socket())->do_accept(parser_->release());
             return;
         }
 
@@ -403,20 +399,12 @@ private:
         {
             bool keep_alive = response_queue_.front().keep_alive();
 
-            beast::async_write(
-                stream_,
-                std::move(response_queue_.front()),
-                beast::bind_front_handler(
-                    &http_session::on_write,
-                    shared_from_this(),
-                    keep_alive));
+			beast::async_write(stream_, std::move(response_queue_.front()), beast::bind_front_handler(&http_session::on_write,
+					shared_from_this(),	keep_alive));
         }
     }
 
-    void on_write(
-            bool keep_alive,
-            beast::error_code ec,
-            std::size_t bytes_transferred)
+    void on_write(bool keep_alive, beast::error_code ec, std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
 
@@ -459,13 +447,8 @@ class listener : public std::enable_shared_from_this<listener>
     std::shared_ptr<std::string const> doc_root_;
 
 public:
-    listener(
-        net::io_context& ioc,
-        tcp::endpoint endpoint,
-        std::shared_ptr<std::string const> const& doc_root)
-        : ioc_(ioc)
-        , acceptor_(net::make_strand(ioc))
-        , doc_root_(doc_root)
+    listener(net::io_context& ioc, tcp::endpoint endpoint, std::shared_ptr<std::string const> const& doc_root)
+        : ioc_(ioc), acceptor_(net::make_strand(ioc)), doc_root_(doc_root)
     {
         beast::error_code ec;
 
@@ -494,8 +477,7 @@ public:
         }
 
         // Start listening for connections
-        acceptor_.listen(
-            net::socket_base::max_listen_connections, ec);
+        acceptor_.listen(net::socket_base::max_listen_connections, ec);
         if (ec)
         {
             fail(ec, "listen");
@@ -510,27 +492,17 @@ public:
         // on the I/O objects in this session. Although not strictly necessary
         // for single-threaded contexts, this example code is written to be
         // thread-safe by default.
-        net::dispatch(
-            acceptor_.get_executor(),
-            beast::bind_front_handler(
-                &listener::do_accept,
-                this->shared_from_this()));
+        net::dispatch(acceptor_.get_executor(), beast::bind_front_handler(&listener::do_accept, this->shared_from_this()));
     }
 
 private:
-    void
-        do_accept()
+    void do_accept()
     {
         // The new connection gets its own strand
-        acceptor_.async_accept(
-            net::make_strand(ioc_),
-            beast::bind_front_handler(
-                &listener::on_accept,
-                shared_from_this()));
+        acceptor_.async_accept(net::make_strand(ioc_), beast::bind_front_handler(&listener::on_accept, shared_from_this()));
     }
 
-    void
-        on_accept(beast::error_code ec, tcp::socket socket)
+    void on_accept(beast::error_code ec, tcp::socket socket)
     {
         if (ec)
         {
@@ -539,9 +511,7 @@ private:
         else
         {
             // Create the http session and run it
-            std::make_shared<http_session>(
-                std::move(socket),
-                doc_root_)->run();
+            std::make_shared<http_session>(std::move(socket), doc_root_)->run();
         }
 
         // Accept another connection
@@ -553,6 +523,8 @@ private:
 
 int main(int argc, char* argv[])
 {
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
     //// Check command line arguments.
     //if (argc != 5)
     //{
@@ -571,10 +543,7 @@ int main(int argc, char* argv[])
     net::io_context ioc{ threads };
 
     // Create and launch a listening port
-    std::make_shared<listener>(
-        ioc,
-        tcp::endpoint{ address, port },
-        doc_root)->run();
+    std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, doc_root)->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     net::signal_set signals(ioc, SIGINT, SIGTERM);
