@@ -27,6 +27,8 @@ namespace websocket = beast::websocket;         // from <boost/beast/websocket.h
 namespace net = boost::asio;                    // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
 
+std::string ProcessHttpPostRequest(std::string body);
+
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view
 mime_type(beast::string_view path)
@@ -131,15 +133,42 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
         };
 
 
-    std::cout << req.target() << std::endl;
+
     if (req.method() == http::verb::post && req.target() == "/search")
     {
-        //ProcessPostMethod();
+        //req.keep_alive();
+        //auto field = req["word"];
+        auto it1 = req.find("");
+        std::string request_body = it1->name_string();
+        std::cout << request_body << std::endl;
+        std::string response_body = ProcessHttpPostRequest(request_body);
+        
+        response_body = "test post request";
+        auto it2 = req.find("word");
+        std::string word = it2->name_string();
+        std::cout << "find word:" << word << std::endl;
+
+        auto it3 = req.find("first");
+        std::string first = it3->name_string();
+        std::cout << "find first:" << first << std::endl;
 
 
+        http::response<http::string_body> res{ http::status::ok, req.version() };
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(http::field::content_type, "text/html");
+        res.keep_alive(req.keep_alive());
+        res.body() = std::string(response_body);
+        res.prepare_payload();
 
+        return res;
+        //auto it4 = req.body();
 
-        return bad_request("Post HTTP-method will be processed soon");
+    /*    std::vector<std::string_view> lines = absl::StrSplit(req.body(), "\r\n");
+        for (size_t i = 0; i < lines.size(); i++)
+        {
+            std::cout << lines.at(i) << std::endl;
+        }*/
+
     }
 
 
@@ -574,6 +603,12 @@ int main(int argc, char* argv[])
         t.join();
 
     return EXIT_SUCCESS;
+}
+
+std::string ProcessHttpPostRequest(std::string body)
+{
+
+    return "";
 }
 
 /*
