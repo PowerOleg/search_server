@@ -18,6 +18,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "file_manager.h"
+#include "postgres_manager.h"
 
 #pragma execution_character_set("utf-8")
 
@@ -27,11 +29,23 @@ namespace websocket = beast::websocket;         // from <boost/beast/websocket.h
 namespace net = boost::asio;                    // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
 
-std::string ProcessHttpPostRequest(std::string body);
+struct Config
+{
+    std::string sqlhost;//хост, на котором запущена база данных;
+    std::string sqlport;//порт, на котором запущена база данных;
+    std::string dbname;//название базы данных;
+    std::string username;//имя пользователя для подключения к базе данных;
+    std::string password;//пароль пользователя для подключения к базе данных;
+    std::string url;//стартовая страница для программы «Паук»;
+    std::string crawler_depth;//глубина рекурсии для программы «Паук»;
+    std::string http_port;//порт для запуска программы - поисковика.
+};
+Config config;
+
+std::string ProcessHttpPostRequest(const std::string &request_body);
 
 // Return a reasonable mime type based on the extension of a file.
-beast::string_view
-mime_type(beast::string_view path)
+beast::string_view mime_type(beast::string_view path)
 {
     using beast::iequals;
     auto const ext = [&path]
@@ -143,7 +157,6 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
         std::cout << request_body << std::endl;
         std::string response_body = ProcessHttpPostRequest(request_body);
         
-        response_body = "test post request";
         auto it2 = req.find("word");
         std::string word = it2->name_string();
         std::cout << "find word:" << word << std::endl;
@@ -554,6 +567,20 @@ int main(int argc, char* argv[])
 {
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
+
+    
+    File_manager file_manager("config.ini");
+    file_manager.FillConfig(
+        &config.sqlhost,
+        &config.sqlport,
+        &config.dbname,
+        &config.username,
+        &config.password,
+        &config.url,
+        &config.crawler_depth,
+        &config.http_port);
+
+
     //// Check command line arguments.
     //if (argc != 5)
     //{
@@ -563,6 +590,8 @@ int main(int argc, char* argv[])
     //        "    advanced-server 0.0.0.0 8080 . 1\n";
     //    return EXIT_FAILURE;
     //}
+
+
     auto const address = net::ip::make_address("127.0.0.1");//(argv[1]);
     auto const port = static_cast<unsigned short>(8080);//(std::atoi(argv[2]));
     auto const doc_root = std::make_shared<std::string>(".");//(argv[3]);
@@ -605,10 +634,15 @@ int main(int argc, char* argv[])
     return EXIT_SUCCESS;
 }
 
-std::string ProcessHttpPostRequest(std::string body)
+std::string ProcessHttpPostRequest(const std::string &request_body)
 {
+    Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
+    std::vector<std::string> urls = postgres.Select10Urls(request_body);
 
-    return "";
+    
+
+
+    return "test post request";
 }
 
 /*
