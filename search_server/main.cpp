@@ -157,13 +157,13 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
         std::cout << request_body << std::endl;
         std::string response_body = ProcessHttpPostRequest(request_body);
         
-        auto it2 = req.find("word");
+        /*auto it2 = req.find("word");
         std::string word = it2->name_string();
         std::cout << "find word:" << word << std::endl;
 
         auto it3 = req.find("first");
         std::string first = it3->name_string();
-        std::cout << "find first:" << first << std::endl;
+        std::cout << "find first:" << first << std::endl;*/
 
 
         http::response<http::string_body> res{ http::status::ok, req.version() };
@@ -636,13 +636,19 @@ int main(int argc, char* argv[])
 
 std::string ProcessHttpPostRequest(const std::string &request_body)
 {
+    std::string result = "";
+    std::string request_body_value = request_body.substr(6);
     Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
-    std::vector<std::string> urls = postgres.Select10Urls(request_body);//("Новости");
+    std::vector<std::string> urls = postgres.SelectUrls(request_body_value, "10");//("Новости", "10");//request_body_value
 
+    result += "<h1>Top 10 search results of word: " + request_body_value + "</h1>\n";
+    int count = 0;
+    for (const std::string url : urls)
+    {
+        result += "<p>" + std::to_string(++count)+ ". " + url + "</p>" + "\n";
+    }
     
-
-
-    return "test post request";
+    return result;
 }
 
 /*
