@@ -5,19 +5,24 @@ Postgres_manager::Postgres_manager(std::string host, std::string port, std::stri
 	std::cout << "Connection is successful" << std::endl;
 }
 
-std::vector<std::string> Postgres_manager::Select10Urls(const std::string word)
+std::vector<std::string> Postgres_manager::Select10Urls(const std::string& word)
 {
 	std::vector<std::string> result;
-
 	try
 	{
-		pqxx::work tx2{ connection };
-		std::string url = tx2.query_value<std::string>(
-			"SELECT document_id FROM documents_words where word_id = 1;"
+		pqxx::work tx{ connection };
+		auto values = tx.query<std::string>(
+			"SELECT document from documents_words dw " 
+			 "join words w on w.id = dw.word_id " 
+			 "join documents d on d.id = dw.document_id where word = " + word + 
+			" order by quantity DESC limit 10;"
 		);
-		tx2.commit();
-		std::cout << "select query" << std::endl;
-		result.push_back(url);
+		tx.commit();
+
+		for (std::tuple<std::string> value : values)
+		{
+			result.push_back(std::get<0>(value));
+		}
 	}
 	catch (const std::exception& e)
 	{
@@ -25,21 +30,4 @@ std::vector<std::string> Postgres_manager::Select10Urls(const std::string word)
 	}
 
 	return result;
-
-	//std::string document_id = std::to_string(postgres_count);
-	//std::string document_id = "";
-//try
-//{
-//	pqxx::work tx2{ connection };
-//	document_id = tx2.query_value<std::string>(
-//		"SELECT d.id FROM documents d where d.document = " + url + ";"
-//	);
-//	tx2.commit();
-//	std::cout << "select query" << std::endl;
-//}
-//catch (const std::exception& e)
-//{
-//	std::cout << e.what() << std::endl;
-//}
-//std::cout << "document_id: " << document_id << std::endl;
 }

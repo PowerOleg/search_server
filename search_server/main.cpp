@@ -637,7 +637,7 @@ int main(int argc, char* argv[])
 std::string ProcessHttpPostRequest(const std::string &request_body)
 {
     Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
-    std::vector<std::string> urls = postgres.Select10Urls(request_body);
+    std::vector<std::string> urls = postgres.Select10Urls(request_body);//("Новости");
 
     
 

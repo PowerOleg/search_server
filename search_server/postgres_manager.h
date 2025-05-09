@@ -12,7 +12,7 @@ public:
 	
 	bool Write(const std::string url, size_t postgres_count, const std::map<std::string, int>& counted_words, long& word_number);
 
-	std::vector<std::string> Select10Urls(const std::string word);
+	std::vector<std::string> Select10Urls(const std::string &word);
 
 private:
 	bool Clean();
