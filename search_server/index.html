@@ -15,18 +15,13 @@
                 <h1>Search</h1>
 
                 <div class="card-body">
-                    <form action="http://127.0.0.1:8080/search" enctype="text/plain" method="post">
-                        <input type="text"
-                        name="first"
-                        field="word"
-                        class="form-control"
-                        placeholder="Enter the word to search" />
+                    <form action="http://127.0.0.1:8080/search" method="post" enctype="application/x-www-form-urlencoded">
+                        <input type="text" name="first" value="" class="form-control" placeholder="Enter the word here" />
 
                         <div class="box-footer">
                             <button type="submit" class="btn btn-primary">Submit</button>
                         </div>
                     </form>
-
 
                 </div>
             </div>
