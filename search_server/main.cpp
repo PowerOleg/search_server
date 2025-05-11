@@ -563,22 +563,10 @@ int main(int argc, char* argv[])
         &config.crawler_depth,
         &config.http_port);
 
-
-    //// Check command line arguments.
-    //if (argc != 5)
-    //{
-    //    std::cerr <<
-    //        "Usage: advanced-server <address> <port> <doc_root> <threads>\n" <<
-    //        "Example:\n" <<
-    //        "    advanced-server 0.0.0.0 8080 . 1\n";
-    //    return EXIT_FAILURE;
-    //}
-
-
-    auto const address = net::ip::make_address("127.0.0.1");//(argv[1]);
-    auto const port = static_cast<unsigned short>(8080);//(std::atoi(argv[2]));
-    auto const doc_root = std::make_shared<std::string>(".");//(argv[3]);
-    auto const threads = std::max<int>(1, 1);//(1, std::atoi(argv[4]));
+    auto const address = net::ip::make_address(config.sqlhost);
+    auto const port = static_cast<unsigned short>(std::atoi(config.http_port.c_str()));
+    auto const doc_root = std::make_shared<std::string>(".");
+    auto const threads = std::max<int>(1, 1);
 
     // The io_context is required for all I/O
     net::io_context ioc{ threads };
