@@ -27,7 +27,7 @@ std::vector<std::string> Postgres_manager::SelectUrls(const std::string &word, c
 	catch (const std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
-		result.push_back("500");
+		result.insert(result.begin(), "502");
 	}
 
 	return result;

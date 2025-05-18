@@ -611,11 +611,19 @@ std::string ProcessHttpPostRequest(const std::string &request_body)
     Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
     std::vector<std::string> urls = postgres.SelectUrls(request_body, "10");//("Новости", "10");//request_body_value
 
-    result += "<h1>Top 10 search results of word: " + request_body + "</h1>\n";
-    int count = 0;
-    for (const std::string url : urls)
+    
+    if (urls.at(0) == "502")
     {
-        result += "<p>" + std::to_string(++count)+ ". " + url + "</p>" + "\n";
+        result = "<h1>Nothing was found</h1>\n";
+    }
+    else
+    {
+        result += "<h1>Top 10 search results of word: " + request_body + "</h1>\n";
+        int count = 0;
+        for (const std::string url : urls)
+        {
+            result += "<p>" + std::to_string(++count) + ". " + url + "</p>" + "\n";
+        }
     }
     
     return result;
