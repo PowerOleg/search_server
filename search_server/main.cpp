@@ -612,7 +612,7 @@ std::string ProcessHttpPostRequest(const std::string &request_body)
     std::vector<std::string> urls = postgres.SelectUrls(request_body, "10");//("Новости", "10");//request_body_value
 
     
-    if (urls.at(0) == "502")
+    if (urls.size() == 0 || urls.at(0) == "502")
     {
         result = "<h1>Nothing was found</h1>\n";
     }

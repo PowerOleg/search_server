@@ -17,7 +17,7 @@ std::vector<std::string> Postgres_manager::SelectUrls(const std::string &word, c
 			 "JOIN documents d ON d.id = dw.document_id where word = '" + word + 
 			"' ORDER BY quantity DESC LIMIT "+ quantity + ";"
 		);
-		tx.commit();
+		//tx.commit();
 
 		for (const std::tuple<std::string>& value : values)
 		{
