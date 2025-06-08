@@ -20,6 +20,7 @@
 #include <vector>
 #include "file_manager.h"
 #include "postgres_manager.h"
+#include "thread_pool.h"
 
 #pragma execution_character_set("utf-8")
 
@@ -566,10 +567,10 @@ int main(int argc, char* argv[])
     auto const address = net::ip::make_address(config.sqlhost);
     auto const port = static_cast<unsigned short>(std::atoi(config.http_port.c_str()));
     auto const doc_root = std::make_shared<std::string>(".");
-    auto const threads = std::max<int>(1, 1);
-
-    // The io_context is required for all I/O
-    net::io_context ioc{ threads };
+    auto const threads = std::max<int>(1, 1);//???
+    size_t thread_quantity = 1;
+    net::io_context ioc{ threads };//???
+    Thread_pool thread_pool(ioc, thread_quantity);
 
     // Create and launch a listening port
     std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, doc_root)->run();
@@ -585,23 +586,29 @@ int main(int argc, char* argv[])
             ioc.stop();
         });
 
-    // Run the I/O service on the requested number of threads
-    std::vector<std::thread> v;
-    v.reserve(threads - 1);
-    for (auto i = threads - 1; i > 0; --i)
-        v.emplace_back(
-            [&ioc]
-            {
-                ioc.run();
-            });
-    ioc.run();
+
+
+    //// Run the I/O service on the requested number of threads
+    //std::vector<std::thread> v;
+    //v.reserve(threads - 1);
+    //for (auto i = threads - 1; i > 0; --i)
+    //    v.emplace_back(
+    //        [&ioc]
+    //        {
+    //            ioc.run();
+    //        });
+    //ioc.run();
+    thread_pool.Enqueue([&ioc] { ioc.run(); });
+        
+
+
 
     // (If we get here, it means we got a SIGINT or SIGTERM)
 
-    // Block until all the threads exit
-    for (auto& t : v)
-        t.join();
-
+    //// Block until all the threads exit
+    //for (auto& t : v)
+    //    t.join();
+    thread_pool.JoinAll();
     return EXIT_SUCCESS;
 }
 
