@@ -44,6 +44,7 @@ struct Config
 Config config;
 
 std::string ProcessHttpPostRequest(const std::string &request_body);
+std::vector<std::string> ParseBody(const std::string& request_body);
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view mime_type(beast::string_view path)
@@ -550,7 +551,6 @@ int main(int argc, char* argv[])
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
 
-    
     File_manager file_manager("config.ini");
     file_manager.FillConfig(
         &config.sqlhost,
@@ -568,20 +568,15 @@ int main(int argc, char* argv[])
     const size_t thread_quantity = 1;
     net::io_context ioc{ thread_quantity };
     Thread_pool thread_pool(ioc, thread_quantity);
-
-    // Create and launch a listening port
-    std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, doc_root)->run();
-
-    // Capture SIGINT and SIGTERM to perform a clean shutdown
-    net::signal_set signals(ioc, SIGINT, SIGTERM);
+    
+    std::make_shared<listener>(ioc, tcp::endpoint{ address, port }, doc_root)->run();// Create and launch a listening port
+    net::signal_set signals(ioc, SIGINT, SIGTERM);// Capture SIGINT and SIGTERM to perform a clean shutdown
     signals.async_wait(
         [&](beast::error_code const&, int)
         {
-            // Stop the `io_context`. This will cause `run()` to return immediately, eventually destroying the `io_context` and all of the sockets in it.
-            ioc.stop();
+            ioc.stop();// Stop the `io_context`. This will cause `run()` to return immediately, eventually destroying the `io_context` and all of the sockets in it.
         });
 
-    thread_pool.Enqueue([&ioc] { ioc.run(); });
     thread_pool.JoinAll();
     return EXIT_SUCCESS;
 }
@@ -590,10 +585,12 @@ std::string ProcessHttpPostRequest(const std::string &request_body)
 {
     std::string result = "";
     Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
-    std::vector<std::string> urls = postgres.SelectUrls(request_body, "10");
+
+    std::vector<std::string> words = ParseBody(request_body);
+    std::map<std::string, std::pair<std::string, int>> document_word_quantity = postgres.FindWordsOccurrance(words);
 
     
-    if (urls.size() == 0 || urls.at(0) == "502")
+   /* if (urls.size() == 0 || urls.at(0) == "502")
     {
         result = "<h1>Nothing was found</h1>\n";
     }
@@ -605,7 +602,14 @@ std::string ProcessHttpPostRequest(const std::string &request_body)
         {
             result += "<p>" + std::to_string(++count) + ". " + url + "</p>" + "\n";
         }
-    }
+    }*/
     
     return result;
+}
+
+std::vector<std::string> ParseBody(const std::string& request_body)
+{
+    std::vector<std::string> words;
+    words.push_back("anD");
+    return words;
 }
