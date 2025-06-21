@@ -545,8 +545,6 @@ private:
     }
 };
 
-//------------------------------------------------------------------------------
-
 int main(int argc, char* argv[])
 {
     SetConsoleCP(CP_UTF8);
@@ -567,9 +565,8 @@ int main(int argc, char* argv[])
     auto const address = net::ip::make_address(config.sqlhost);
     auto const port = static_cast<unsigned short>(std::atoi(config.http_port.c_str()));
     auto const doc_root = std::make_shared<std::string>(".");
-    auto const threads = std::max<int>(1, 1);//???
-    size_t thread_quantity = 1;
-    net::io_context ioc{ threads };//???
+    const size_t thread_quantity = 1;
+    net::io_context ioc{ thread_quantity };
     Thread_pool thread_pool(ioc, thread_quantity);
 
     // Create and launch a listening port
@@ -580,34 +577,11 @@ int main(int argc, char* argv[])
     signals.async_wait(
         [&](beast::error_code const&, int)
         {
-            // Stop the `io_context`. This will cause `run()`
-            // to return immediately, eventually destroying the
-            // `io_context` and all of the sockets in it.
+            // Stop the `io_context`. This will cause `run()` to return immediately, eventually destroying the `io_context` and all of the sockets in it.
             ioc.stop();
         });
 
-
-
-    //// Run the I/O service on the requested number of threads
-    //std::vector<std::thread> v;
-    //v.reserve(threads - 1);
-    //for (auto i = threads - 1; i > 0; --i)
-    //    v.emplace_back(
-    //        [&ioc]
-    //        {
-    //            ioc.run();
-    //        });
-    //ioc.run();
     thread_pool.Enqueue([&ioc] { ioc.run(); });
-        
-
-
-
-    // (If we get here, it means we got a SIGINT or SIGTERM)
-
-    //// Block until all the threads exit
-    //for (auto& t : v)
-    //    t.join();
     thread_pool.JoinAll();
     return EXIT_SUCCESS;
 }
@@ -616,7 +590,7 @@ std::string ProcessHttpPostRequest(const std::string &request_body)
 {
     std::string result = "";
     Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
-    std::vector<std::string> urls = postgres.SelectUrls(request_body, "10");//("Новости", "10");//request_body_value
+    std::vector<std::string> urls = postgres.SelectUrls(request_body, "10");
 
     
     if (urls.size() == 0 || urls.at(0) == "502")
