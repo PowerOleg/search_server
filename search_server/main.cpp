@@ -46,7 +46,7 @@ Config config;
 
 std::string ProcessHttpPostRequest(const std::string &request_body);
 std::vector<std::string> ParseBody(const std::string& request_body);
-std::string MakeResponse(const std::string& request_body, const std::vector<std::string>& words, const std::map<std::string, std::vector<std::pair<std::string, int>>> &document_word_quantity);
+std::string MakeResponse(std::string request_body, const std::vector<std::string>& words, const std::map<std::string, std::vector<std::pair<std::string, int>>> &document_word_quantity);
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view mime_type(beast::string_view path)
@@ -605,38 +605,41 @@ std::vector<std::string> ParseBody(const std::string& request_body)
     return words;
 }
 
-std::string MakeResponse(const std::string& request_body, const std::vector<std::string> &words, const std::map<std::string, std::vector<std::pair<std::string, int>>> &document_word_quantity_map)
+std::string MakeResponse(std::string request_body, const std::vector<std::string> &words, const std::map<std::string, std::vector<std::pair<std::string, int>>> &document_words_quantity_map)
 {
+    std::replace(request_body.begin(), request_body.end(), '+', ' ');
     std::string response = "";
     std::map <int, std::string> urls;
 
-    if (document_word_quantity_map.size() == 0 /* || document_word_quantity_map.at(0).first == "502" */)
+    if (document_words_quantity_map.size() == 0)
     {
         response = "<h1>Nothing was found</h1>\n";
     }
     else
     {
-        for (const auto& document_word_quantity : document_word_quantity_map)
+        for (const auto& document_words_quantity : document_words_quantity_map)
         {
-            //std::pair<std::string, int> word_quantity = document_word_quantity.second;
-
+            int total_quantity = 0;
+            std::vector<std::pair<std::string, int>> words_quantity = document_words_quantity.second;
+            for (size_t i = 0; i < words_quantity.size(); i++)
+            {
+                total_quantity += words_quantity.at(i).second;
+            }
+            urls.insert({ total_quantity , document_words_quantity.first });
         }
-       
+        //std::reverse(urls.begin(), urls.end());
 
-
-
-
-
-
-
-        response += "<h1>Top 10 search results of word: " + request_body + "</h1>\n";
+        response += "<h1>Top 10 search results of phrase: " + request_body + "</h1>\n";
         int count = 0;
-        for (const auto& key_value : urls)//auto it = map.begin(); it != map.end(); ++it 
+        for (auto iter = urls.rbegin(); iter != urls.rend(); ++iter)//auto it = map.begin(); it != map.end(); ++it 
         {
-            response += "<p>" + std::to_string(++count) + ". " + key_value.second + "</p>" + "\n";
+            response += "<p>" + std::to_string(++count) + ". " + iter->second + "</p>" + "\n";
+            if (count == 10)
+            {
+                break;
+            }
         }
     }
-    
 
     return response;
 }

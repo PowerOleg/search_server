@@ -34,7 +34,7 @@ std::map<std::string, std::vector<std::pair<std::string, int>>> Postgres_manager
 					int quantity = std::get<2>(value);
 					std::pair<std::string, int> word_quantity{ std::get<1>(value), quantity };
 					old_vector.push_back(word_quantity);
-					std::cout << "OLD document: " << "document: " << document << "added word: " << word_quantity.first << " quantity: " << word_quantity.second << std::endl;
+					std::cout << "OLD document: " << "document: " << document << " added word: " << word_quantity.first << " quantity: " << word_quantity.second << std::endl;
 					//document_words_quantity.insert({ document, old_vector });
 				}
 				else
