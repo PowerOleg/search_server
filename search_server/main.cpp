@@ -153,7 +153,6 @@ http::message_generator handle_request(beast::string_view doc_root, http::reques
     if (req.method() == http::verb::post && req.target() == "/search")
     {
         std::string request_value = req.body().substr(6);
-        std::cout << "REQUEST BODY: " << request_value << std::endl;
         std::string response_body = ProcessHttpPostRequest(request_value);
 
         http::response<http::string_body> res{ http::status::ok, req.version() };
@@ -610,6 +609,12 @@ std::string ProcessHttpPostRequest(const std::string &request_body)
 std::vector<std::string> ParseBody(const std::string& request_body)
 {
     std::vector<std::string> words;
-    words.push_back("anD");
+    std::stringstream stream(request_body);
+    std::string buffer = "";
+    std::cout << "PARSING REQUEST BODY: " << std::endl;
+    while (getline(stream, buffer, '+')) {
+        std::cout << buffer << std::endl;
+        words.push_back(buffer);
+    };
     return words;
 }
