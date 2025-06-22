@@ -15,6 +15,7 @@
 #include <iostream>
 #include <memory>
 #include <queue>
+#include <map>
 #include <string>
 #include <thread>
 #include <vector>
@@ -45,6 +46,7 @@ Config config;
 
 std::string ProcessHttpPostRequest(const std::string &request_body);
 std::vector<std::string> ParseBody(const std::string& request_body);
+std::string MakeResponse(const std::string& request_body, const std::vector<std::string>& words, const std::map<std::string, std::vector<std::pair<std::string, int>>> &document_word_quantity);
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view mime_type(beast::string_view path)
@@ -582,28 +584,12 @@ int main(int argc, char* argv[])
 
 std::string ProcessHttpPostRequest(const std::string &request_body)
 {
-    std::string result = "";
     Postgres_manager postgres(config.sqlhost, config.sqlport, config.dbname, config.username, config.password);
-
     std::vector<std::string> words = ParseBody(request_body);
-    std::map<std::string, std::pair<std::string, int>> document_word_quantity = postgres.FindWordsOccurrance(words);
-
+    std::map<std::string, std::vector<std::pair<std::string, int>>> document_words_quantity = postgres.FindWordsOccurrance(words);
+    std::string response = MakeResponse(request_body, words, document_words_quantity);
     
-   /* if (urls.size() == 0 || urls.at(0) == "502")
-    {
-        result = "<h1>Nothing was found</h1>\n";
-    }
-    else
-    {
-        result += "<h1>Top 10 search results of word: " + request_body + "</h1>\n";
-        int count = 0;
-        for (const std::string url : urls)
-        {
-            result += "<p>" + std::to_string(++count) + ". " + url + "</p>" + "\n";
-        }
-    }*/
-    
-    return result;
+    return response;
 }
 
 std::vector<std::string> ParseBody(const std::string& request_body)
@@ -617,4 +603,40 @@ std::vector<std::string> ParseBody(const std::string& request_body)
         words.push_back(buffer);
     };
     return words;
+}
+
+std::string MakeResponse(const std::string& request_body, const std::vector<std::string> &words, const std::map<std::string, std::vector<std::pair<std::string, int>>> &document_word_quantity_map)
+{
+    std::string response = "";
+    std::map <int, std::string> urls;
+
+    if (document_word_quantity_map.size() == 0 /* || document_word_quantity_map.at(0).first == "502" */)
+    {
+        response = "<h1>Nothing was found</h1>\n";
+    }
+    else
+    {
+        for (const auto& document_word_quantity : document_word_quantity_map)
+        {
+            //std::pair<std::string, int> word_quantity = document_word_quantity.second;
+
+        }
+       
+
+
+
+
+
+
+
+        response += "<h1>Top 10 search results of word: " + request_body + "</h1>\n";
+        int count = 0;
+        for (const auto& key_value : urls)//auto it = map.begin(); it != map.end(); ++it 
+        {
+            response += "<p>" + std::to_string(++count) + ". " + key_value.second + "</p>" + "\n";
+        }
+    }
+    
+
+    return response;
 }
