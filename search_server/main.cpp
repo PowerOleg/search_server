@@ -609,7 +609,7 @@ std::string MakeResponse(std::string request_body, const std::vector<std::string
 {
     std::replace(request_body.begin(), request_body.end(), '+', ' ');
     std::string response = "";
-    std::map <int, std::string> urls;
+    std::vector<std::pair<int, std::string>> urls;
 
     if (document_words_quantity_map.size() == 0)
     {
@@ -625,15 +625,14 @@ std::string MakeResponse(std::string request_body, const std::vector<std::string
             {
                 total_quantity += words_quantity.at(i).second;
             }
-            urls.insert({ total_quantity , document_words_quantity.first });
+            urls.push_back({ total_quantity , document_words_quantity.first });
         }
-        //std::reverse(urls.begin(), urls.end());
+        std::sort(urls.begin(), urls.end(), [](std::pair<int, std::string> const& a, std::pair<int, std::string> const& b) { return a.first < b.first; });
 
         response += "<h1>Top 10 search results of phrase: " + request_body + "</h1>\n";
-        int count = 0;
-        for (auto iter = urls.rbegin(); iter != urls.rend(); ++iter)//auto it = map.begin(); it != map.end(); ++it 
+        for (int i = urls.size() - 1, count = 0; i >= 0; i--)//std::reverse(urls.begin(), urls.end());
         {
-            response += "<p>" + std::to_string(++count) + ". " + iter->second + "</p>" + "\n";
+            response += "<p>" + std::to_string(++count) + ". " + urls.at(i).second + "</p>" + "\n";
             if (count == 10)
             {
                 break;
